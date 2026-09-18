@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { KeyRound, Mail, CheckCircle2, AlertCircle, ArrowRight } from 'lucide-react';
+import { KeyRound, Mail, CheckCircle2, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function Auth({ onLoginSuccess }) {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
   const [loading, setLoading] = useState(false);
@@ -82,9 +83,9 @@ export default function Auth({ onLoginSuccess }) {
 
   return (
     <div className="auth-container">
-      <div className="auth-header">
-        <div className="brand-icon" style={{ margin: '0 auto 0.75rem auto' }}>B</div>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>
+      <div className="auth-header" style={{ textAlign: 'center' }}>
+        <h1 className="brand-logo-title">BillAI</h1>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.25rem' }}>
           {mode === 'login' ? 'Admin Sign In' : 'Register Admin Account'}
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
@@ -155,15 +156,36 @@ export default function Auth({ onLoginSuccess }) {
           <label>Password</label>
           <div style={{ position: 'relative' }}>
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               required
               className="form-input"
-              style={{ width: '100%', paddingLeft: '2.5rem' }}
+              style={{ width: '100%', paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
               placeholder="••••••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
             />
             <KeyRound size={16} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              style={{
+                position: 'absolute',
+                right: '0.8rem',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                color: 'var(--text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+              title={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            </button>
           </div>
         </div>
 
@@ -187,7 +209,7 @@ export default function Auth({ onLoginSuccess }) {
           <span>
             Don't have an admin account?{' '}
             <button
-              style={{ background: 'none', border: 'none', color: 'var(--accent-cyan)', cursor: 'pointer', fontWeight: 600 }}
+              style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}
               onClick={() => {
                 setMode('register');
                 setError('');
@@ -201,7 +223,7 @@ export default function Auth({ onLoginSuccess }) {
           <span>
             Already registered?{' '}
             <button
-              style={{ background: 'none', border: 'none', color: 'var(--accent-cyan)', cursor: 'pointer', fontWeight: 600 }}
+              style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', fontWeight: 600, textDecoration: 'underline' }}
               onClick={() => {
                 setMode('login');
                 setError('');

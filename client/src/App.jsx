@@ -27,6 +27,8 @@ import {
   Moon,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
+  Check,
 } from 'lucide-react';
 import Auth from './components/Auth';
 import OrgManager from './components/OrgManager';
@@ -61,6 +63,7 @@ export default function App() {
   const [selectedOrg, setSelectedOrg] = useState(null);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [projectDropdownOpen, setProjectDropdownOpen] = useState(false);
 
   const [summary, setSummary] = useState({
     total_spend_this_month: 0,
@@ -152,10 +155,10 @@ export default function App() {
 
     try {
       const [sumRes, teamRes, memberRes, logsRes] = await Promise.all([
-        fetch(`/api/dashboard/summary${queryParam}`),
-        fetch(`/api/dashboard/by-team${queryParam}`),
-        fetch(`/api/dashboard/by-member${queryParam}`),
-        fetch(`/api/dashboard/logs${queryParam}`),
+        fetch(`/api/dashboard/summary${queryParam}`, { headers: authHeaders }),
+        fetch(`/api/dashboard/by-team${queryParam}`, { headers: authHeaders }),
+        fetch(`/api/dashboard/by-member${queryParam}`, { headers: authHeaders }),
+        fetch(`/api/dashboard/logs${queryParam}`, { headers: authHeaders }),
       ]);
 
       if (sumRes.ok) setSummary(await sumRes.json());
@@ -164,6 +167,21 @@ export default function App() {
       if (logsRes.ok) setLogs(await logsRes.json());
     } catch (err) {
       console.error('Failed to fetch dashboard data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    if (!token) return;
+    setLoading(true);
+    try {
+      await Promise.all([
+        fetchOrgs(),
+        fetchDashboardData(),
+      ]);
+    } catch (err) {
+      console.error('Failed to refresh data:', err);
     } finally {
       setLoading(false);
     }
@@ -320,7 +338,7 @@ export default function App() {
           <button
             className="sidebar-item"
             style={{ padding: '0.5rem 0.75rem' }}
-            onClick={fetchDashboardData}
+            onClick={handleRefresh}
             disabled={loading}
             title="Refresh Data"
           >
@@ -400,31 +418,79 @@ export default function App() {
               gap: '1rem',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              <Layers size={18} color="var(--accent-cyan)" />
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-muted)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--text-muted)', letterSpacing: '0.05em' }}>
                 PROJECT FILTER:
               </span>
-              <select
-                className="select-filter"
-                style={{ fontWeight: 700, fontSize: '0.9rem', padding: '0.4rem 0.8rem' }}
-                value={selectedProject ? selectedProject.id : 'ALL'}
-                onChange={(e) => {
-                  if (e.target.value === 'ALL') {
-                    setSelectedProject(null);
-                  } else {
-                    const proj = projects.find((p) => p.id === e.target.value);
-                    if (proj) setSelectedProject(proj);
-                  }
-                }}
-              >
-                <option value="ALL">All Projects in {selectedOrg ? selectedOrg.name : 'Organization'}</option>
-                {projects.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name}
-                  </option>
-                ))}
-              </select>
+
+              <div style={{ position: 'relative' }}>
+                <button
+                  type="button"
+                  className="custom-dropdown-trigger"
+                  onClick={() => setProjectDropdownOpen(!projectDropdownOpen)}
+                >
+                  <Folder size={16} color="var(--accent-cyan)" />
+                  <span>
+                    {selectedProject
+                      ? selectedProject.name
+                      : `All Projects in ${selectedOrg ? selectedOrg.name : 'Organization'}`}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    color="var(--text-muted)"
+                    style={{
+                      transition: 'transform 0.2s ease',
+                      transform: projectDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    }}
+                  />
+                </button>
+
+                {projectDropdownOpen && (
+                  <>
+                    <div
+                      style={{ position: 'fixed', inset: 0, zIndex: 99 }}
+                      onClick={() => setProjectDropdownOpen(false)}
+                    />
+                    <div className="custom-dropdown-menu">
+                      <div className="dropdown-menu-header">SELECT PROJECT</div>
+
+                      <div
+                        className={`dropdown-menu-item ${!selectedProject ? 'active' : ''}`}
+                        onClick={() => {
+                          setSelectedProject(null);
+                          setProjectDropdownOpen(false);
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                          <Layers size={16} />
+                          <span>All Projects in {selectedOrg ? selectedOrg.name : 'Organization'}</span>
+                        </div>
+                        {!selectedProject && <Check size={16} color="var(--accent-cyan)" />}
+                      </div>
+
+                      {projects.map((p) => {
+                        const isSelected = selectedProject?.id === p.id;
+                        return (
+                          <div
+                            key={p.id}
+                            className={`dropdown-menu-item ${isSelected ? 'active' : ''}`}
+                            onClick={() => {
+                              setSelectedProject(p);
+                              setProjectDropdownOpen(false);
+                            }}
+                          >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                              <Folder size={16} />
+                              <span>{p.name}</span>
+                            </div>
+                            {isSelected && <Check size={16} color="var(--accent-cyan)" />}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
 
             <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
@@ -501,7 +567,7 @@ export default function App() {
             ) : (
               <div style={{ width: '100%', height: 320 }}>
                 <ResponsiveContainer>
-                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 25 }}>
+                  <BarChart data={chartData} margin={{ top: 20, right: 30, left: 35, bottom: 25 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--panel-border)" vertical={false} />
                     <XAxis
                       dataKey={chartXKey}
@@ -509,7 +575,12 @@ export default function App() {
                       tick={{ fill: 'var(--text-main)', fontSize: 12, fontWeight: 600 }}
                       dy={10}
                     />
-                    <YAxis stroke="var(--text-muted)" tickFormatter={(val) => `$${val}`} />
+                    <YAxis
+                      width={100}
+                      stroke="var(--text-muted)"
+                      tick={{ fill: 'var(--text-muted)', fontSize: 12, fontWeight: 500 }}
+                      tickFormatter={(val) => `$${val}`}
+                    />
                     <Tooltip
                       contentStyle={{
                         backgroundColor: 'var(--panel-bg)',

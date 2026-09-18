@@ -47,9 +47,9 @@ export default function AcceptInvite() {
 
   return (
     <div className="auth-container" style={{ maxWidth: '600px', margin: '3rem auto' }}>
-      <div className="auth-header">
-        <div className="brand-icon" style={{ margin: '0 auto 0.75rem auto' }}>B</div>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 700 }}>
+      <div className="auth-header" style={{ textAlign: 'center' }}>
+        <h1 className="brand-logo-title">BillAI</h1>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 700, marginTop: '0.25rem' }}>
           BillAI Team Invitation
         </h2>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>

@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   XCircle,
   AlertTriangle,
+  FileText,
 } from 'lucide-react';
 
 export default function OrgManager({
@@ -310,7 +311,8 @@ export default function OrgManager({
                       setDrillLevel('teams');
                     }}
                   >
-                    {proj.name}
+                    <FileText size={36} className="card-file-icon" />
+                    <span>{proj.name}</span>
                   </div>
                 ))}
               </div>
@@ -358,7 +360,8 @@ export default function OrgManager({
                       setDrillLevel('members');
                     }}
                   >
-                    {t.name}
+                    <Users size={36} className="card-team-icon" />
+                    <span>{t.name}</span>
                   </div>
                 ))}
               </div>
