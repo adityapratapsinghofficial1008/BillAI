@@ -186,10 +186,15 @@ app.post('/api/auth/register', async (req, res) => {
     );
 
     // Dispatch verification email
-    await sendVerificationEmail(email, verificationToken);
+    const mailResult = await sendVerificationEmail(email, verificationToken);
 
     res.json({
-      message: 'Registration successful! Please check your email for the verification link.',
+      message: mailResult.success
+        ? 'Registration successful! Please check your email for the verification link.'
+        : 'Registration successful! (Email delivery notice: Use the verification link below or check server logs)',
+      verifyUrl: mailResult.verifyUrl,
+      emailSent: mailResult.success,
+      emailError: mailResult.error || null,
       user: userRes.rows[0],
     });
   } catch (err) {
@@ -483,12 +488,16 @@ app.post('/api/teams/:teamId/members/bulk', authMiddleware, async (req, res) => 
         existingSet.add(cleanEmail);
         succeeded++;
 
-        // Send invite email asynchronously
-        sendInviteEmail(cleanEmail, billaiKey, team.team_name, inviteToken).catch((err) => {
-          console.error(`[Bulk Invite Mail Warning] Failed to send email to ${cleanEmail}:`, err.message);
-        });
+        const inviteResult = await sendInviteEmail(cleanEmail, billaiKey, team.team_name, inviteToken);
 
-        results.push({ email: cleanEmail, status: 'invited', member: memberRes.rows[0] });
+        results.push({
+          email: cleanEmail,
+          status: 'invited',
+          inviteUrl: inviteResult.inviteUrl,
+          emailSent: inviteResult.success,
+          emailError: inviteResult.error || null,
+          member: memberRes.rows[0],
+        });
       } catch (err) {
         failed++;
         results.push({ email: cleanEmail, status: 'failed', reason: err.message || 'Database insert error' });

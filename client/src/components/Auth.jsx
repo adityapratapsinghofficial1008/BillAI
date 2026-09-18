@@ -38,10 +38,13 @@ export default function Auth({ onLoginSuccess }) {
     }
   }, []);
 
+  const [registeredVerifyUrl, setRegisteredVerifyUrl] = useState('');
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setSuccessMsg('');
+    setRegisteredVerifyUrl('');
     setLoading(true);
 
     const endpoint = mode === 'login' ? '/api/auth/login' : '/api/auth/register';
@@ -61,6 +64,9 @@ export default function Auth({ onLoginSuccess }) {
 
       if (mode === 'register') {
         setSuccessMsg(data.message || 'Registration successful! Check your email for a verification link.');
+        if (data.verifyUrl) {
+          setRegisteredVerifyUrl(data.verifyUrl);
+        }
         setMode('login');
         setPassword('');
       } else {
@@ -102,9 +108,29 @@ export default function Auth({ onLoginSuccess }) {
       )}
 
       {successMsg && (
-        <div className="alert-box alert-success" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <CheckCircle2 size={18} />
-          <span>{successMsg}</span>
+        <div className="alert-box alert-success" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <CheckCircle2 size={18} />
+            <span>{successMsg}</span>
+          </div>
+          {registeredVerifyUrl && (
+            <div style={{ marginTop: '0.25rem' }}>
+              <a
+                href={registeredVerifyUrl}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                  fontSize: '0.85rem',
+                  fontWeight: 600,
+                  color: 'var(--accent-cyan)',
+                  textDecoration: 'underline',
+                }}
+              >
+                Click here to verify account immediately →
+              </a>
+            </div>
+          )}
         </div>
       )}
 

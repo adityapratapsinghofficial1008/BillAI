@@ -612,9 +612,22 @@ export default function OrgManager({
                     >
                       <span className="mono" style={{ color: 'var(--text-main)' }}>{res.email}</span>
                       {res.status === 'invited' ? (
-                        <span style={{ color: 'var(--accent-green)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                          <CheckCircle2 size={14} /> Invited
-                        </span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                          <span style={{ color: 'var(--accent-green)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <CheckCircle2 size={14} /> Invited
+                          </span>
+                          {res.inviteUrl && (
+                            <button
+                              type="button"
+                              className="copy-key"
+                              onClick={() => copyToClipboard(res.inviteUrl, `inv-${i}`)}
+                              title="Copy Direct Invite Link"
+                              style={{ padding: '2px 6px', fontSize: '0.75rem' }}
+                            >
+                              {copiedKey === `inv-${i}` ? 'Copied!' : 'Copy Link'}
+                            </button>
+                          )}
+                        </div>
                       ) : (
                         <span style={{ color: 'var(--accent-red)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
                           <XCircle size={14} /> {res.reason}
